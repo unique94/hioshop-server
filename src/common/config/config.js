@@ -3,18 +3,18 @@ module.exports = {
     default_module: 'api',
 	port: 8360, //服务端口，可自定义
     weixin: {
-        appid: 'wx7af111110000000', // 小程序 appid
-        secret: 'cb8e5adce569f9bddce5b8123123e1115aaddce505', // 小程序密钥
-        mch_id: '15988888888', // 商户帐号ID
-        partner_key: 'asdasdasdasdasdasdasd', // 微信支付密钥
+        appid: 'wx9df48e36894eee79', // 小程序 appid
+        secret: 'f3e2d8c2b79f523878368a9e2fe6df54', // 小程序密钥
+        mch_id: '', // 商户帐号ID
+        partner_key: '', // 微信支付密钥
         notify_url: 'https://www.您的域名.com/api/pay/notify' // 微信支付异步通知
     },
     express: {
         // 已废弃，之后考虑改回来，做成和阿里云的物流查询可以切换，方便大家的使用
         // 免费的，但是顺丰的话，要配合快递鸟的电子面单
         // 快递物流信息查询使用的是快递鸟接口，申请地址：http://www.kdniao.com/ 
-        appid: '12312312', // 对应快递鸟用户后台 用户ID
-        appkey: '123123123123123123123123', // 对应快递鸟用户后台 API key
+        appid: '', // 对应快递鸟用户后台 用户ID
+        appkey: '', // 对应快递鸟用户后台 API key
         request_url: 'http://api.kdniao.com/Ebusiness/EbusinessOrderHandle.aspx'
     },
    mianexpress:{
