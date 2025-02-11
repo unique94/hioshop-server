@@ -49,13 +49,20 @@ module.exports = class extends Base {
 		if(cartCount == null){
 			cartCount = 0;
 		}
-		let data = {
-			channel: channel,
-			banner: banner,
-			notice: notice,
-			categoryList: categoryList,
-			cartCount: cartCount,
-		}
+        // 查询理事风采数据
+        const directors = await this.model('director').where({
+            is_show: 1
+        }).field('id,name,position,avatar').order({
+            sort_order: 'desc'
+        }).select();
+        let data = {
+            channel: channel,
+            banner: banner,
+            notice: notice,
+            categoryList: categoryList,
+            cartCount: cartCount,
+            directors: directors  // 添加理事数据到返回结果
+        }
         return this.success(data);
     }
 };

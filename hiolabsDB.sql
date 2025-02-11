@@ -16841,3 +16841,26 @@ INSERT INTO `hiolabs_user` VALUES (1048, '55ub6Imv8J+QoA==', '手动', '微信�
 COMMIT;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+-- Table structure for hiolabs_director
+-- ----------------------------
+DROP TABLE IF EXISTS `hiolabs_director`;
+CREATE TABLE `hiolabs_director` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(60) NOT NULL DEFAULT '' COMMENT '理事姓名',
+  `position` varchar(60) NOT NULL DEFAULT '' COMMENT '职位',
+  `avatar` varchar(255) DEFAULT '' COMMENT '头像',
+  `introduction` text COMMENT '介绍',
+  `sort_order` int(11) DEFAULT '1000' COMMENT '排序',
+  `is_show` tinyint(1) DEFAULT '1' COMMENT '是否显示',
+  `add_time` int(11) DEFAULT '0' COMMENT '添加时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='理事信息表';
+
+-- ----------------------------
+-- Records of hiolabs_director
+-- ----------------------------
+BEGIN;
+INSERT INTO `hiolabs_director` VALUES (1, '赵本', '理事长', 'http://yanxuan.nosdn.127.net/39695757fe860202cf2455614576adf4.jpg', '赵本，男，1980年出生，毕业于清华大学，现任赵本公司总经理。', 1000, 1, 1681903302);
+COMMIT;
