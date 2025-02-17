@@ -37,14 +37,32 @@ module.exports = class extends Base {
   async userDetailAction() {
     let userId = this.getLoginUserId();
     if (userId != 0) {
-      let info = await this.model("user")
+      let userInfo = await this.model("user")
         .where({
           id: userId,
         })
         .field("id,mobile,name,nickname,avatar")
         .find();
-      info.nickname = Buffer.from(info.nickname, "base64").toString();
-      return this.success(info);
+      
+      let balanceInfo = await this.model("user_balance")
+        .where({
+          user_id: userId
+        })
+        .field("user_level_name,balance")
+        .find();
+      
+      // 铺平的数据结构
+      const responseData = {
+        id: userInfo.id,
+        mobile: userInfo.mobile,
+        name: userInfo.name,
+        nickname: Buffer.from(userInfo.nickname, "base64").toString(),
+        avatar: userInfo.avatar,
+        user_level_name: balanceInfo.user_level_name || '',
+        balance: balanceInfo.balance || 0
+      };
+
+      return this.success(responseData);
     }
     else{
       return this.fail(100,'未登录')
