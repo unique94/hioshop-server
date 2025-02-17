@@ -936,8 +936,8 @@ module.exports = class extends Base {
             })
         };
         const httpsUrl = await uploadQiniu();
-        console.log(httpsUrl);
         let lastUrl = domain + httpsUrl;
+        console.log("完成上传", lastUrl);
         return this.success(lastUrl);
     }
 };

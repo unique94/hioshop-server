@@ -579,14 +579,14 @@ CREATE TABLE `hiolabs_region` (
   KEY `agency_id` (`agency_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=4047 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- -- ----------------------------
--- -- Records of hiolabs_region
--- -- ----------------------------
--- BEGIN;
--- INSERT INTO `hiolabs_region` VALUES (1, 0, '中国', 0, 0, 10, 'QG', 0);
--- INSERT INTO `hiolabs_region` VALUES (2, 1, '北京市', 1, 0, 4, 'HB', 0);
--- INSERT INTO `hiolabs_region` VALUES (3, 1, '天津市', 1, 0, 4, 'HB', 0);
--- COMMIT;
+-- ----------------------------
+-- Records of hiolabs_region
+-- ----------------------------
+BEGIN;
+INSERT INTO `hiolabs_region` VALUES (1, 0, '中国', 0, 0, 10, 'QG', 0);
+INSERT INTO `hiolabs_region` VALUES (2, 1, '北京市', 1, 0, 4, 'HB', 0);
+INSERT INTO `hiolabs_region` VALUES (3, 1, '天津市', 1, 0, 4, 'HB', 0);
+COMMIT;
 
 -- ----------------------------
 -- Table structure for hiolabs_search_history
@@ -703,6 +703,28 @@ CREATE TABLE `hiolabs_specification` (
 -- INSERT INTO `hiolabs_specification` VALUES (3, '重量', 3, '');
 -- COMMIT;
 
+
+-- ----------------------------
+-- Table structure for hiolabs_user_level
+-- ----------------------------
+DROP TABLE IF EXISTS `hiolabs_user_level`;
+CREATE TABLE `hiolabs_user_level` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(30) NOT NULL DEFAULT '' COMMENT '用户等级名称',
+  `description` varchar(255) NOT NULL DEFAULT '' COMMENT '用户等级描述',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户等级表';
+
+-- ----------------------------
+-- Records of hiolabs_user_level
+-- ----------------------------
+BEGIN;
+INSERT INTO `hiolabs_user_level` VALUES (1, '普通用户', '普通用户');
+INSERT INTO `hiolabs_user_level` VALUES (2, '理事', '理事');
+COMMIT;
+
+
+
 -- ----------------------------
 -- Table structure for hiolabs_user
 -- ----------------------------
@@ -729,12 +751,6 @@ CREATE TABLE `hiolabs_user` (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=5590 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- ----------------------------
--- Records of hiolabs_user
--- ----------------------------
--- BEGIN;
--- INSERT INTO `hiolabs_user` VALUES (1048, '55ub6Imv8J+QoA==', '手动', '微信用户54d1ca3d-c898-4b76-bba3-f9e4af2a3777', 'oLMM446Si-opBMiWDZdNt3jvrxO4', 1, 0, 1582794169, 1681903302, '', '13588585854', '', '/static/upload/avatar/25f45a40-9447-41bc-9d53-4c5fc17f3dff.jpeg', 'oLMM446Si-opBMiWDZdNt3jvrxO4', 1, '', '', '');
--- COMMIT;
 
 -- ----------------------------
 -- Table structure for hiolabs_director
@@ -763,6 +779,38 @@ INSERT INTO `hiolabs_director` VALUES (4, '李梅', '劳工学校校长', 'http:
 INSERT INTO `hiolabs_director` VALUES (5, '瑶五', '国学理事长', 'http://yanxuan.nosdn.127.net/8f4ed88b7550586de659a767bb409799.jpg', '瑶五，男，2000年出生，毕业于清华大学，现任赵本公司总经理。', 1000, 1, 1681903302);
 COMMIT;
 
+-- ----------------------------
+-- Table structure for hiolabs_user_balance
+-- ----------------------------
+DROP TABLE IF EXISTS `hiolabs_user_balance`;
+CREATE TABLE `hiolabs_user_balance` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` mediumint(8) unsigned NOT NULL COMMENT '用户ID',
+  `user_level_id` int(11) NOT NULL DEFAULT '1' COMMENT '用户等级ID',
+  `user_level_name` varchar(255) NOT NULL DEFAULT '普通用户' COMMENT '用户等级名称',
+  `balance` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '储值余额',
+  `add_time` int(11) NOT NULL DEFAULT '0' COMMENT '成为当前等级的时间',
+  `update_time` int(11) NOT NULL DEFAULT '0' COMMENT '最后更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_user_level_id` (`user_level_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户等级关系表';
 
+-- ----------------------------
+-- Table structure for hiolabs_balance_log
+-- ----------------------------
+DROP TABLE IF EXISTS `hiolabs_balance_log`;
+CREATE TABLE `hiolabs_balance_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` mediumint(8) unsigned NOT NULL COMMENT '用户ID',
+  `order_id` mediumint(8) unsigned DEFAULT NULL COMMENT '订单ID',
+  `amount` decimal(10,2) NOT NULL COMMENT '变动金额',
+  `type` tinyint(3) NOT NULL COMMENT '类型：1充值，2消费，3退款',
+  `memo` varchar(255) NOT NULL DEFAULT '' COMMENT '备注说明',
+  `add_time` int(11) NOT NULL DEFAULT '0' COMMENT '记录时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='储值余额变动记录表';
 
 SET FOREIGN_KEY_CHECKS = 1;

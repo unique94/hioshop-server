@@ -12,14 +12,39 @@ module.exports = class extends Base {
         const buffer = Buffer.from(nickname);
         nickname = buffer.toString('base64');
         const model = this.model('user');
-        const data = await model.where({
-            nickname: ['like', `%${nickname}%`],
-        }).order(['id DESC']).page(page, size).countSelect();
+        
+        // 修改查询，添加与user_balance表的关联
+        const data = await model.alias('u')
+            .join({
+                table: 'user_balance',
+                join: 'left', 
+                as: 'b',
+                on: ['u.id', 'b.user_id']
+            })
+            .field([
+                'u.*',
+                'b.balance',
+                'b.user_level_id',
+                'b.user_level_name'
+            ])
+            .where({
+                'u.nickname': ['like', `%${nickname}%`],
+            })
+            .order(['u.id DESC'])
+            .page(page, size)
+            .countSelect();
+
+        // 处理数据
         for (const item of data.data) {
             item.register_time = moment.unix(item.register_time).format('YYYY-MM-DD HH:mm:ss');
             item.last_login_time = moment.unix(item.last_login_time).format('YYYY-MM-DD HH:mm:ss');
             item.nickname = Buffer.from(item.nickname, 'base64').toString();
+            // 确保balance字段存在，如果不存在设为0
+            item.balance = item.balance || '0';
+            item.user_level_id = item.user_level_id || 1;
+            item.user_level_name = item.user_level_name || '普通用户';
         }
+
         let info = {
             userData: data,
         }
@@ -28,13 +53,30 @@ module.exports = class extends Base {
     async infoAction() {
         const id = this.get('id');
         const model = this.model('user');
+        
+        // 获取用户基本信息
         let info = await model.where({
             id: id
         }).find();
-        info.register_time = moment.unix(info.register_time).format('YYYY-MM-DD HH:mm:ss');
-        info.last_login_time = moment.unix(info.last_login_time).format('YYYY-MM-DD HH:mm:ss');
-        info.nickname = Buffer.from(info.nickname, 'base64').toString();
-        return this.success(info);
+        
+        // 获取用户余额信息
+        const balanceInfo = await this.model('user_balance').where({
+            user_id: id
+        }).find();
+
+        // 创建一个新对象来存储所有信息，避免直接修改 model 实例
+        const responseData = {
+            ...info,  // 展开原始用户信息
+            register_time: moment.unix(info.register_time).format('YYYY-MM-DD HH:mm:ss'),
+            last_login_time: moment.unix(info.last_login_time).format('YYYY-MM-DD HH:mm:ss'),
+            nickname: Buffer.from(info.nickname, 'base64').toString(),
+            // 添加余额相关信息
+            balance: !think.isEmpty(balanceInfo) ? balanceInfo.balance : '0',
+            user_level_id: !think.isEmpty(balanceInfo) ? balanceInfo.user_level_id : 1,
+            user_level_name: !think.isEmpty(balanceInfo) ? balanceInfo.user_level_name : '普通用户'
+        };
+
+        return this.success(responseData);
     }
     async datainfoAction() {
         const id = this.get('id');
@@ -276,6 +318,108 @@ module.exports = class extends Base {
         await this.model('user').where({
             id: id
         }).limit(1).delete();
+        return this.success();
+    }
+
+    /**
+     * 获取所有用户等级
+     * @return {Promise} 返回用户等级列表
+     */
+    async getUserLevelsAction() {
+        const model = this.model('user_level');
+        const data = await model.field(['id', 'name', 'description']).select();
+        return this.success(data);
+    }
+
+    /**
+     * 更新用户等级
+     * @return {Promise}
+     */
+    async updateUserLevelAction() {
+        if (!this.isPost) {
+            return this.fail('请求方法不正确');
+        }
+
+        const userId = this.post('user_id');
+        const userLevelId = this.post('user_level_id');
+
+        console.log(userId, userLevelId);
+        console.log("akdjfaljdkf");
+        
+        // 首先获取用户等级信息
+        const levelInfo = await this.model('user_level').where({
+            id: userLevelId
+        }).find();
+
+        if (think.isEmpty(levelInfo)) {
+            return this.fail('用户等级不存在');
+        }
+
+        // 更新用户余额表中的等级信息
+        const userBalanceModel = this.model('user_balance');
+        
+        // 检查用户是否已有余额记录
+        const existingBalance = await userBalanceModel.where({
+            user_id: userId
+        }).find();
+
+        if (think.isEmpty(existingBalance)) {
+            // 如果没有记录，创建新记录
+            await userBalanceModel.add({
+                user_id: userId,
+                user_level_id: userLevelId,
+                user_level_name: levelInfo.name,
+                balance: '0'
+            });
+        } else {
+            // 如果有记录，更新等级信息
+            await userBalanceModel.where({
+                user_id: userId
+            }).update({
+                user_level_id: userLevelId,
+                user_level_name: levelInfo.name
+            });
+        }
+
+        return this.success();
+    }
+
+    /**
+     * 更新用户余额
+     * @return {Promise}
+     */
+    async updateBalanceAction() {
+        if (!this.isPost) {
+            return this.fail('请求方法不正确');
+        }
+
+        const userId = this.post('user_id');
+        const balance = this.post('balance');
+
+        // 验证输入
+        if (!userId || !balance) {
+            return this.fail('缺少必要参数');
+        }
+
+        const userBalanceModel = this.model('user_balance');
+        
+        // 检查用户是否已有余额记录
+        const existingBalance = await userBalanceModel.where({
+            user_id: userId
+        }).find();
+
+        // 检查用户等级
+        if (think.isEmpty(existingBalance) || existingBalance.user_level_id !== 2) {
+            return this.fail('只有理事用户才能修改国学豆余额，请先升级用户等级');
+        }
+
+        // 理事用户，更新余额
+        await userBalanceModel.where({
+            user_id: userId
+        }).update({
+            balance: balance
+        });
+
         return this.success();
     }
 };
