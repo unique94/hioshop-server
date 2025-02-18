@@ -177,7 +177,7 @@ module.exports = class extends Base {
         }
 
         if (parseFloat(userBalance.balance) < parseFloat(orderInfo.actual_price)) {
-            return this.fail(400, '余额不足，请先充值');
+            return this.fail(400, '国学豆不足，请联系管理员');
         }
 
         // 扣除余额
