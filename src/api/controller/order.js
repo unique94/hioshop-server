@@ -301,7 +301,7 @@ module.exports = class extends Base {
      */
     async submitAction() {
         // 获取收货地址信息和计算运费
-		const userId = this.getLoginUserId();;
+        const userId = this.getLoginUserId();
         const addressId = this.post('addressId');
         const freightPrice = this.post('freightPrice');
         const offlinePay = this.post('offlinePay');
@@ -357,15 +357,15 @@ module.exports = class extends Base {
             let i = Number(item) + 1;
             print_info = print_info + i + '、' + checkedGoodsList[item].goods_aka + '【' + checkedGoodsList[item].number + '】 ';
         }
-        let def = await this.model('settings').where({
-            id: 1
-        }).find();
-        let sender_name = def.Name;
-        let sender_mobile = def.Tel;
-        // let sender_address = '';
-        let userInfo = await this.model('user').where({
-            id: userId
-        }).find();
+        // let def = await this.model('settings').where({
+        //     id: 1
+        // }).find();
+        // let sender_name = def.Name;
+        // let sender_mobile = def.Tel;
+        // // let sender_address = '';
+        // let userInfo = await this.model('user').where({
+        //     id: userId
+        // }).find();
         // const checkedAddress = await this.model('address').where({id: addressId}).find();
         const orderInfo = {
             order_sn: this.model('order').generateOrderNumber(),

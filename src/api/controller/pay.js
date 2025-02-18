@@ -129,4 +129,85 @@ module.exports = class extends Base {
             // version 1.01
         }
     }
+    async balancePayAction() {
+        const orderId = this.get('orderId');
+        const orderInfo = await this.model('order').where({
+            id: orderId
+        }).find();
+
+        if (think.isEmpty(orderInfo)) {
+            return this.fail(400, '订单已取消');
+        }
+        if (parseInt(orderInfo.pay_status) !== 0) {
+            return this.fail(400, '订单已支付，请不要重复操作');
+        }
+
+        // 再次确认库存和价格
+        let orderGoods = await this.model('order_goods').where({
+            order_id: orderId,
+            is_delete: 0
+        }).select();
+        let checkPrice = 0;
+        let checkStock = 0;
+        for (const item of orderGoods) {
+            let product = await this.model('product').where({
+                id: item.product_id
+            }).find();
+            if (item.number > product.goods_number) {
+                checkStock++;
+            }
+            if (item.retail_price != product.retail_price) {
+                checkPrice++;
+            }
+        }
+        if (checkStock > 0) {
+            return this.fail(400, '库存不足，请重新下单');
+        }
+        if (checkPrice > 0) {
+            return this.fail(400, '价格发生变化，请重新下单');
+        }
+
+        // 检查用户余额
+        const userBalance = await this.model('user_balance').where({
+            user_id: orderInfo.user_id
+        }).find();
+        
+        if (think.isEmpty(userBalance)) {
+            return this.fail(400, '用户余额账户不存在');
+        }
+
+        if (parseFloat(userBalance.balance) < parseFloat(orderInfo.actual_price)) {
+            return this.fail(400, '余额不足，请先充值');
+        }
+
+        // 扣除余额
+        const newBalance = parseFloat(userBalance.balance) - parseFloat(orderInfo.actual_price);
+        await this.model('user_balance').where({
+            user_id: orderInfo.user_id
+        }).update({
+            balance: newBalance,
+            update_time: parseInt(Date.now() / 1000)
+        });
+
+        // 记录余额变动日志
+        await this.model('balance_log').add({
+            user_id: orderInfo.user_id,
+            order_id: orderId,
+            amount: -orderInfo.actual_price,
+            type: 2, // 2表示消费
+            memo: '订单支付',
+            add_time: parseInt(Date.now() / 1000)
+        });
+
+        // 更新支付结果
+        await this.model('order').where({id: orderInfo.id}).update({
+            pay_status: 2,
+            pay_id: `B${moment().format('YYYYMMDDHHmmss')}`,
+            pay_time: parseInt(Date.now() / 1000),
+            order_status: 300 // 已付款状态
+        });
+
+        this.afterPay(orderInfo);
+        return this.success();
+    }
 };
