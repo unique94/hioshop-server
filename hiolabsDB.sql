@@ -316,7 +316,6 @@ CREATE TABLE `hiolabs_goods` (
 -- Records of hiolabs_goods
 -- ----------------------------
 BEGIN;
-INSERT INTO `hiolabs_goods` VALUES (1155000, 1005000, 1, '德高以致远', 1, 11, '', '399.00', 399.00, '300.00', 300.00, '书房-德高以致远', '<p><img src=\"http://yanxuan.nosdn.127.net/162f14bce2afba3a484ce8fb5da1e58b.jpg\" _src=\"http://yanxuan.nosdn.127.net/162f14bce2afba3a484ce8fb5da1e58b.jpg\" style=\"\"/></p>', 12, 1, 1, '件', 'http://yanxuan.nosdn.127.net/7335f6e807e8507994710bca848de2d8.jpg', 'http://yanxuan.nosdn.127.net/d7d6ef1f1865991077384761b4521dce.png', 0, 0, 0, 1, 0);
 INSERT INTO `hiolabs_goods` VALUES (1181000, 1005000, 1, '宁静致远', 2, 18, '', '999', 999.00, '900', 900.00, '画作-宁静致远', '<p><img src=\"http://yanxuan.nosdn.127.net/3ddfe10db43f7df33ba82ae7570ada80.jpg\"></p><p><img src=\"http://yanxuan.nosdn.127.net/7682b7930b4776ce032f509c24a74a1e.jpg\"></p>', 1, 1, 0, '件', 'http://yanxuan.nosdn.127.net/6f3e94fa4b44341bda5a73224d605896.jpg', 'http://yanxuan.nosdn.127.net/1f67b1970ee20fd572b7202da0ff705d.png', 19, 0, 0, 1, 1);
 COMMIT;
 
@@ -339,7 +338,10 @@ CREATE TABLE `hiolabs_goods_gallery` (
 -- Records of hiolabs_goods_gallery
 -- ----------------------------
 BEGIN;
-INSERT INTO `hiolabs_goods_gallery` VALUES (681, 1009024, 'http://yanxuan.nosdn.127.net/5c1d28e86ccb89980e6054a49571cdec.jpg', '', 5, 1);
+INSERT INTO `hiolabs_goods_gallery` VALUES (677, 1181000, 'http://yanxuan.nosdn.127.net/355efbcc32981aa3b7869ca07ee47dac.jpg', '', 5, 0);
+INSERT INTO `hiolabs_goods_gallery` VALUES (678, 1181000, 'http://yanxuan.nosdn.127.net/43e283df216881037b70d8b34f8846d3.jpg', '', 5, 0);
+INSERT INTO `hiolabs_goods_gallery` VALUES (679, 1181000, 'http://yanxuan.nosdn.127.net/12e41d7e5dabaf9150a8bb45c41cf422.jpg', '', 5, 0);
+INSERT INTO `hiolabs_goods_gallery` VALUES (680, 1181000, 'http://yanxuan.nosdn.127.net/5c1d28e86ccb89980e6054a49571cdec.jpg', '', 5, 0);
 COMMIT;
 
 -- ----------------------------
@@ -358,13 +360,12 @@ CREATE TABLE `hiolabs_goods_specification` (
   KEY `specification_id` (`specification_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商品对应规格表值表';
 
--- -- ----------------------------
--- -- Records of hiolabs_goods_specification
--- -- ----------------------------
--- BEGIN;
--- INSERT INTO `hiolabs_goods_specification` VALUES (6, 1006051, 1, '红色', '', 0);
--- INSERT INTO `hiolabs_goods_specification` VALUES (7, 1009024, 1, '棕色', '', 0);
--- COMMIT;
+-- ----------------------------
+-- Records of hiolabs_goods_specification
+-- ----------------------------
+BEGIN;
+INSERT INTO `hiolabs_goods_specification` VALUES (46, 1181000, 1, '1套', '', 0);
+COMMIT;
 
 -- ----------------------------
 -- Table structure for hiolabs_keywords
@@ -553,12 +554,12 @@ CREATE TABLE `hiolabs_product` (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=252 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- -- ----------------------------
--- -- Records of hiolabs_product
--- -- ----------------------------
--- BEGIN;
--- INSERT INTO `hiolabs_product` VALUES (1, 1181000, '46', 'Y100300', 100, 999.00, 900.00, 4.00, 0, '母亲节礼物-舒适安睡组合1', 1, 0);
--- COMMIT;
+-- ----------------------------
+-- Records of hiolabs_product
+-- ----------------------------
+BEGIN;
+INSERT INTO `hiolabs_product` VALUES (1, 1181000, '46', 'Y100300', 100, 999.00, 900.00, 4.00, 0, '母亲节礼物-舒适安睡组合1', 1, 0);
+COMMIT;
 
 -- ----------------------------
 -- Table structure for hiolabs_region
@@ -584,8 +585,9 @@ CREATE TABLE `hiolabs_region` (
 -- ----------------------------
 BEGIN;
 INSERT INTO `hiolabs_region` VALUES (1, 0, '中国', 0, 0, 10, 'QG', 0);
-INSERT INTO `hiolabs_region` VALUES (2, 1, '北京市', 1, 0, 4, 'HB', 0);
 INSERT INTO `hiolabs_region` VALUES (3, 1, '天津市', 1, 0, 4, 'HB', 0);
+INSERT INTO `hiolabs_region` VALUES (38, 3, '天津市', 2, 0, 0, '0', 0);
+INSERT INTO `hiolabs_region` VALUES (423, 38, '河东区', 3, 0, 0, '0', 0);
 COMMIT;
 
 -- ----------------------------

@@ -32,20 +32,42 @@ module.exports = class extends Base {
     const buffer = Buffer.from('微信用户');
     let nickname = buffer.toString("base64");
     if (think.isEmpty(userId)) {
-      // 注册
-      userId = await this.model("user").add({
-        username: "微信用户" + think.uuid(6),
-        password: sessionData.openid,
-        register_time: currentTime,
-        register_ip: clientIp,
-        last_login_time: currentTime,
-        last_login_ip: clientIp,
-        mobile: "",
-        weixin_openid: sessionData.openid,
-        nickname: nickname,
-        avatar:'/static/images/default_avatar.png'
-      });
-      is_new = 1;
+      // 获取数据库实例
+      const userModel = this.model('user');
+      const balanceModel = this.model('user_balance');
+      
+      try {
+        // TODO. 开启事务
+        // 注册用户
+        userId = await userModel.add({
+          username: "微信用户" + think.uuid(6),
+          password: sessionData.openid,
+          register_time: currentTime,
+          register_ip: clientIp,
+          last_login_time: currentTime,
+          last_login_ip: clientIp,
+          mobile: "",
+          weixin_openid: sessionData.openid,
+          nickname: nickname,
+          avatar:'/static/images/default_avatar.png'
+        });
+
+        // 初始化用户余额
+        await balanceModel.add({
+          user_id: userId,
+          balance: 0.00,
+          user_level_id: 1,
+          user_level_name: '普通用户',
+          create_time: currentTime,
+          update_time: currentTime
+        });
+
+        is_new = 1;
+      } catch (err) {
+        // 回滚事务
+        await userModel.rollback();
+        return this.fail('注册失败：' + err.message);
+      }
     }
     sessionData.user_id = userId;
     // 更新登录信息
