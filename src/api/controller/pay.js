@@ -23,89 +23,89 @@ module.exports = class extends Base {
         this.afterPay(orderInfo);
 		return this.success();
     }
-    // 真实的付款接口
-    async preWeixinPayAction() {
-        const orderId = this.get('orderId');
-        const orderInfo = await this.model('order').where({
-            id: orderId
-        }).find();
-        // 再次确认库存和价格
-        let orderGoods = await this.model('order_goods').where({
-            order_id:orderId,
-            is_delete:0
-        }).select();
-        let checkPrice = 0;
-        let checkStock = 0;
-        for(const item of orderGoods){
-            let product = await this.model('product').where({
-                id:item.product_id
-            }).find();
-            if(item.number > product.goods_number){
-                checkStock++;
-            }
-            if(item.retail_price != product.retail_price){
-                checkPrice++;
-            }
-        }
-        if(checkStock > 0){
-            return this.fail(400, '库存不足，请重新下单');
-        }
-        if(checkPrice > 0){
-            return this.fail(400, '价格发生变化，请重新下单');
-        }
-        if (think.isEmpty(orderInfo)) {
-            return this.fail(400, '订单已取消');
-        }
-        if (parseInt(orderInfo.pay_status) !== 0) {
-            return this.fail(400, '订单已支付，请不要重复操作');
-        }
-        const openid = await this.model('user').where({
-            id: orderInfo.user_id
-        }).getField('weixin_openid', true);
-        if (think.isEmpty(openid)) {
-            return this.fail(400, '微信支付失败，没有openid');
-        }
-        const WeixinSerivce = this.service('weixin', 'api');
-        try {
-            const returnParams = await WeixinSerivce.createUnifiedOrder({
-                openid: openid,
-                body: '[海风小店]：' + orderInfo.order_sn,
-                out_trade_no: orderInfo.order_sn,
-                total_fee: parseInt(orderInfo.actual_price * 100),
-                spbill_create_ip: ''
-            });
-            return this.success(returnParams);
-        } catch (err) {
-            return this.fail(400, '微信支付失败?');
-        }
-    }
-    async notifyAction() {
-        const WeixinSerivce = this.service('weixin', 'api');
-        const data = this.post('xml');
-        const result = WeixinSerivce.payNotify(this.post('xml'));
+    // // 真实的付款接口
+    // async preWeixinPayAction() {
+    //     const orderId = this.get('orderId');
+    //     const orderInfo = await this.model('order').where({
+    //         id: orderId
+    //     }).find();
+    //     // 再次确认库存和价格
+    //     let orderGoods = await this.model('order_goods').where({
+    //         order_id:orderId,
+    //         is_delete:0
+    //     }).select();
+    //     let checkPrice = 0;
+    //     let checkStock = 0;
+    //     for(const item of orderGoods){
+    //         let product = await this.model('product').where({
+    //             id:item.product_id
+    //         }).find();
+    //         if(item.number > product.goods_number){
+    //             checkStock++;
+    //         }
+    //         if(item.retail_price != product.retail_price){
+    //             checkPrice++;
+    //         }
+    //     }
+    //     if(checkStock > 0){
+    //         return this.fail(400, '库存不足，请重新下单');
+    //     }
+    //     if(checkPrice > 0){
+    //         return this.fail(400, '价格发生变化，请重新下单');
+    //     }
+    //     if (think.isEmpty(orderInfo)) {
+    //         return this.fail(400, '订单已取消');
+    //     }
+    //     if (parseInt(orderInfo.pay_status) !== 0) {
+    //         return this.fail(400, '订单已支付，请不要重复操作');
+    //     }
+    //     const openid = await this.model('user').where({
+    //         id: orderInfo.user_id
+    //     }).getField('weixin_openid', true);
+    //     if (think.isEmpty(openid)) {
+    //         return this.fail(400, '微信支付失败，没有openid');
+    //     }
+    //     const WeixinSerivce = this.service('weixin', 'api');
+    //     try {
+    //         const returnParams = await WeixinSerivce.createUnifiedOrder({
+    //             openid: openid,
+    //             body: '[海风小店]：' + orderInfo.order_sn,
+    //             out_trade_no: orderInfo.order_sn,
+    //             total_fee: parseInt(orderInfo.actual_price * 100),
+    //             spbill_create_ip: ''
+    //         });
+    //         return this.success(returnParams);
+    //     } catch (err) {
+    //         return this.fail(400, '微信支付失败?');
+    //     }
+    // }
+    // async notifyAction() {
+    //     const WeixinSerivce = this.service('weixin', 'api');
+    //     const data = this.post('xml');
+    //     const result = WeixinSerivce.payNotify(this.post('xml'));
         
-        if (!result) {
-            let echo = 'FAIL';
-            return this.json(echo);
-        }
-        const orderModel = this.model('order');
-        const orderInfo = await orderModel.getOrderByOrderSn(result.out_trade_no);
-        if (think.isEmpty(orderInfo)) {
-            let echo = 'FAIL';
-            return this.json(echo);
-        }
-        let bool = await orderModel.checkPayStatus(orderInfo.id);
-        if (bool == true) {
-            if (orderInfo.order_type == 0) { //普通订单和秒杀订单
-                await orderModel.updatePayData(orderInfo.id, result);
-                this.afterPay(orderInfo);
-            } 
-        } else {
-            return '<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单已支付]]></return_msg></xml>';
-        }
-        let echo = 'SUCCESS'
-        return this.json(echo);
-    }
+    //     if (!result) {
+    //         let echo = 'FAIL';
+    //         return this.json(echo);
+    //     }
+    //     const orderModel = this.model('order');
+    //     const orderInfo = await orderModel.getOrderByOrderSn(result.out_trade_no);
+    //     if (think.isEmpty(orderInfo)) {
+    //         let echo = 'FAIL';
+    //         return this.json(echo);
+    //     }
+    //     let bool = await orderModel.checkPayStatus(orderInfo.id);
+    //     if (bool == true) {
+    //         if (orderInfo.order_type == 0) { //普通订单和秒杀订单
+    //             await orderModel.updatePayData(orderInfo.id, result);
+    //             this.afterPay(orderInfo);
+    //         } 
+    //     } else {
+    //         return '<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单已支付]]></return_msg></xml>';
+    //     }
+    //     let echo = 'SUCCESS'
+    //     return this.json(echo);
+    // }
     async afterPay(orderInfo) {
         if (orderInfo.order_type == 0) {
             let orderGoodsList = await this.model('order_goods').where({
@@ -204,7 +204,7 @@ module.exports = class extends Base {
             pay_status: 2,
             pay_id: `B${moment().format('YYYYMMDDHHmmss')}`,
             pay_time: parseInt(Date.now() / 1000),
-            order_status: 300 // 已付款状态
+            order_status: 300 // 201订单已付款，等待发货; 300-待发货;
         });
 
         this.afterPay(orderInfo);

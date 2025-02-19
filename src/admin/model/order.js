@@ -70,6 +70,9 @@ module.exports = class extends think.Model {
             case 201:
                 statusText = '待备货';
                 break;
+            case 203:
+                statusText = '交易已退款';
+                break;
             case 300:
                 statusText = '待发货';
                 break;
@@ -86,6 +89,7 @@ module.exports = class extends think.Model {
                 statusText = '交易成功'; //到时间，未收货的系统自动收货、
                 break;
         }
+        console.log(orderId, statusText);
         return statusText;
     }
     async getOrderBtnText(orderId) {

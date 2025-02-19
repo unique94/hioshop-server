@@ -41,6 +41,7 @@ module.exports = class extends think.Model {
             delete: false, // 删除操作
             pay: false, // 支付操作
             confirm: false, // 确认收货完成订单操作
+            refund: false, // 退款操作
             cancel_refund: false
         };
         const orderInfo = await this.where({
@@ -73,14 +74,16 @@ module.exports = class extends think.Model {
             handleOption.delete = true;
         }
         // 如果订单已付款，没有发货，则可退款操作
-        if (orderInfo.order_status === 201) {
-            // handleOption.return = true;
+        if (orderInfo.order_status === 201 || orderInfo.order_status === 300) {
+            handleOption.refund = true;
         }
         // 如果订单申请退款中，没有相关操作
         if (orderInfo.order_status === 202) {
-            handleOption.cancel_refund = true;
+            // handleOption.cancel_refund = true;
         }
+
         if (orderInfo.order_status === 300) {}
+        
         // 如果订单已经退款，则可删除
         if (orderInfo.order_status === 203) {
             handleOption.delete = true;

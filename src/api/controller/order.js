@@ -163,6 +163,8 @@ module.exports = class extends Base {
         orderInfo.order_status = '';
         // 订单可操作的选择,删除，支付，收货，评论，退换货
         const handleOption = await this.model('order').getOrderHandleOption(orderId);
+        console.log(handleOption);
+        
         const textCode = await this.model('order').getOrderTextCode(orderId);
         return this.success({
             orderInfo: orderInfo,
@@ -528,5 +530,92 @@ module.exports = class extends Base {
         } else if (status == 6) {
             return '退件签收';
         }
+    }
+    /**
+     * 退款操作
+     * @return {Promise} []
+     */
+    async refundAction() {
+        const orderId = this.post('orderId');
+        const userId = this.getLoginUserId();
+
+        // 检测是否能够退款
+        const handleOption = await this.model('order').getOrderHandleOption(orderId);
+        if (!handleOption.refund) {
+            return this.fail('订单不能退款，请联系管理员');
+        }
+
+        // 获取订单信息
+        const orderInfo = await this.model('order').where({
+            id: orderId,
+            user_id: userId
+        }).find();
+
+        if (think.isEmpty(orderInfo)) {
+            return this.fail('订单不存在');
+        }
+
+        // 查找对应的消费记录
+        const consumeLog = await this.model('balance_log').where({
+            user_id: userId,
+            order_id: orderId,
+            type: 2  // 消费记录
+        }).find();
+
+        if (think.isEmpty(consumeLog)) {
+            return this.fail('未找到支付记录');
+        }
+
+        // 设置订单为退款状态
+        let updateInfo = {
+            order_status: 203 // 已退款状态
+        };
+
+        // 还原商品库存
+        const goodsInfo = await this.model('order_goods').where({
+            order_id: orderId,
+            user_id: userId
+        }).select();
+
+        for (const item of goodsInfo) {
+            let goods_id = item.goods_id;
+            let product_id = item.product_id;
+            let number = item.number;
+            await this.model('goods').where({
+                id: goods_id
+            }).increment('goods_number', number);
+            await this.model('product').where({
+                id: product_id
+            }).increment('goods_number', number);
+        }
+
+        // 记录退款日志
+        const currentTime = parseInt(new Date().getTime() / 1000);
+        const balanceLog = {
+            user_id: userId,
+            order_id: orderId,
+            amount: Math.abs(consumeLog.amount), // 使用消费记录中的金额（取绝对值）
+            type: 3, // 3表示退款
+            memo: '订单退款',
+            add_time: currentTime
+        };
+
+        // 更新用户余额和更新时间
+        await this.model('user_balance').where({
+            user_id: userId
+        }).update({
+            balance: ['exp', `balance + ${Math.abs(consumeLog.amount)}`],
+            update_time: currentTime
+        });
+
+        // 添加余额变动记录
+        await this.model('balance_log').add(balanceLog);
+
+        // 更新订单状态
+        const succesInfo = await this.model('order').where({
+            id: orderId
+        }).update(updateInfo);
+
+        return this.success(succesInfo);
     }
 };
