@@ -82,8 +82,6 @@ module.exports = class extends think.Model {
             // handleOption.cancel_refund = true;
         }
 
-        if (orderInfo.order_status === 300) {}
-        
         // 如果订单已经退款，则可删除
         if (orderInfo.order_status === 203) {
             handleOption.delete = true;

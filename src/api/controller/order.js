@@ -566,9 +566,9 @@ module.exports = class extends Base {
             return this.fail('未找到支付记录');
         }
 
-        // 设置订单为退款状态
+        // 设置订单为交易关闭
         let updateInfo = {
-            order_status: 203 // 已退款状态
+            order_status: 102 // 交易关闭状态
         };
 
         // 还原商品库存
